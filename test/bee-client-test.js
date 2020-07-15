@@ -20,19 +20,22 @@ function delay(milliseconds) {
 
 const toHex = byteArray => Array.from(byteArray, (byte) => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('')
 
+let tempHash = ''
+
 console.log()
 describe('BeeClient', () => {
     describe('Testing', () => {
         it('stores item', async () => {
-            const bee = new BeeClient("http://localhost:8500")
-            console.log(bee)
-
-            const fileData = await readFileAsync('/home/michellerhyder/Documents/fds-bee-client/test/byeworld.txt')
-            console.log(fileData)
-            let data = Buffer.from('foo');
-
+            const bee = new BeeClient("http://localhost:8080/chunks", null)
+            const data = new Uint8Array(4096 * 8 + 1)
             const hash = await bee.uploadData(data).then(hash => {
-                console.log(toHex(hash))
+                tempHash = toHex(hash)
+            })
+        })
+        it('retrieves item', async () => {
+            const bee = new BeeClient("http://localhost:8080/chunks", null)
+            const hash = await bee.downloadData(tempHash).then(file => {
+                console.log(file)
             })
         })
     })
