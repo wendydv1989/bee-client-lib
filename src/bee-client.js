@@ -129,7 +129,6 @@ BeeClient.prototype.downloadChunkData = async function (hash) {
 BeeClient.prototype.downloadChunks = async function (hash) {
     const chunks = []
     const totalSize = await join(hash, this.downloadChunkData.bind(this), data => {
-        console.log('outCallback', data)
         chunks.push(data)
     })
     return chunks

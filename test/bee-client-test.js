@@ -9,18 +9,12 @@ const base32Encode = require('base32-encode')
 const base32Decode = require('base32-decode')
 const base32Variant = 'Crockford'
 const textEncoding = require('text-encoding')
-var TextDecoder = textEncoding.TextDecoder
-var TextEncoder = textEncoding.TextEncoder
 
-const td = new TextDecoder("utf-8")
-const te = new TextEncoder("utf-8")
-//const encodeId = (buffer) => base32Encode(buffer, base32Variant)
-// const decodeId = (id) => {
-//     // console.log('decodeId', {id})
-//     return new Uint8Array(base32Decode(id, base32Variant))
-// }
+const td = new textEncoding.TextDecoder("utf-8")
+const te = new textEncoding.TextEncoder("utf-8")
 
 var path = require('path');
+
 
 const BeeClient = require('../src/bee-client');
 const assert = require('chai').assert
@@ -39,7 +33,7 @@ function delay(milliseconds) {
 const wallet = new swarm.unsafeWallet();
 
 let tempHash = ''
-
+let fileData = ''
 const userObject = {
     avatar: "data",
     username: "Boys Club Berlin",
@@ -56,20 +50,20 @@ const data = te.encode(JSON.stringify(userObject))
 const bee = new BeeClient("http://localhost:8080/chunks", null)
 
 describe('BeeClient', () => {
-    describe('Testing', () => {
+    describe('Testing the Lib <3', () => {
         it('stores item', async () => {
             const bee = new BeeClient("http://localhost:8080/chunks", null)
-            //const fileData = await readFileAsync('/home/michellerhyder/Documents/fds-bee-client/test/byeworld.txt')
-            const hash = await bee.uploadData(data).then(hash => {
+            fileData = await readFileAsync('/home/michellerhyder/Documents/fds-bee-client/test/byeworld.txt')
+            const hash = await bee.uploadData(fileData).then(hash => {
                 tempHash = toHex(hash)
             })
         })
         it('retrieves item', async () => {
             const bee = new BeeClient("http://localhost:8080/chunks", null)
-            const hash = await bee.downloadData(tempHash).then(file => {
-                file = file
-            })
-            assert.equal(data, file, "Stored is not the same as retrieved")
+            const newHash = tempHash.startsWith('0x') ? tempHash.slice(2) : tempHash
+            const res = await bee.downloadData(newHash)
+            const string = td.decode(res)
+            assert.equal(string, fileData, "Stored is not the same as retrieved")
         })
         it('creates a feed', async () => {
             const res = await bee.addFeed(wallet)
