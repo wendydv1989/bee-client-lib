@@ -11,8 +11,9 @@
   "dependencies": {
     "chai": "^4.2.0",
     "chai-spies": "^1.0.0",
+    "dfeeds": "git+https://gitlab.com/dznt/dfeeds",
     "mocha": "^8.0.1",
     "node-fetch": "^2.6.0",
-    "swarm-lowlevel": "^0.7.0"
+    "swarm-lowlevel": "git+https://gitlab.com/nolash/swarm-lowlevel-js"
   }
 }
