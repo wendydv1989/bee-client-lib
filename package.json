@@ -9,11 +9,15 @@
   "author": "Michelle Plur",
   "license": "MIT",
   "dependencies": {
+    "base32-decode": "^1.0.0",
+    "base32-encode": "^1.1.1",
     "chai": "^4.2.0",
     "chai-spies": "^1.0.0",
     "dfeeds": "git+https://gitlab.com/dznt/dfeeds",
     "mocha": "^8.0.1",
     "node-fetch": "^2.6.0",
-    "swarm-lowlevel": "git+https://gitlab.com/nolash/swarm-lowlevel-js"
+    "swarm-lowlevel": "git+https://gitlab.com/nolash/swarm-lowlevel-js",
+    "text-encoding": "^0.7.0",
+    "utf8-encoder": "^1.0.1"
   }
 }
