@@ -44,6 +44,21 @@ const topic = new Uint8Array(32) // Say i want to do "userdata"
 
 describe('BeeClient', () => {
     describe('Testing', () => {
+        it('stores item', async () => {
+            const bee = new BeeClient("http://localhost:8080/chunks", null)
+            //const fileData = await readFileAsync('/home/michellerhyder/Documents/fds-bee-client/test/byeworld.txt')
+            const hash = await bee.uploadData(data).then(hash => {
+                tempHash = toHex(hash)
+            })
+        })
+        it('retrieves item', async () => {
+            const bee = new BeeClient("http://localhost:8080/chunks", null)
+            const hash = await bee.downloadData(tempHash).then(file => {
+                file = file
+
+            })
+            assert(data, file, "Stored is not the same as retrieved")
+        })
         it('creates a feed', async () => {
              const res = await bee.addFeed(wallet)
              const res2 = await bee.updateFeed(data, wallet)
@@ -63,21 +78,7 @@ describe('BeeClient', () => {
        console.log(res)
        //const res2 = await bee.updateFeed("Hello", wallet)
   })
-        // it('stores item', async () => {
-        //     const bee = new BeeClient("http://localhost:8080/chunks", null)
-        //     //const fileData = await readFileAsync('/home/michellerhyder/Documents/fds-bee-client/test/byeworld.txt')
-        //     const hash = await bee.uploadData(data).then(hash => {
-        //         tempHash = toHex(hash)
-        //     })
-        // })
-        // it('retrieves item', async () => {
-        //     const bee = new BeeClient("http://localhost:8080/chunks", null)
-        //     const hash = await bee.downloadData(tempHash).then(file => {
-        //         file = file
-
-        //     })
-        //     assert(data, file, "Stored is not the same as retrieved")
-        // })
+       
         // it(' userobject', async () => {
         //     // Save the user object to SOC and upload it to bee
         //     const data = JSON.parse(userObject)

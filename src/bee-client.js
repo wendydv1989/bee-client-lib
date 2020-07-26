@@ -7,7 +7,7 @@ function BeeClient(chunkDataEndpoint, options) {
     this.chunkDataEndpoint = chunkDataEndpoint
     this.fetch = fetch
     options = options || {}
-    this.feeds = {} 
+    this.feeds = {}
 }
 
 const toHex = byteArray => Array.from(byteArray, (byte) => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('')
@@ -36,51 +36,19 @@ BeeClient.prototype.uploadData = async function (data) {
     return hash
 }
 
-BeeClient.prototype.addFeedWithTopic = async function (topic,wallet,  startIndex = 0) {
-    const indexedSaltedSocIdGen = new dfeeds.saltIndexed(wallet.address, topic)
-    if(startIndex >= 0) {
-        indexedSaltedSocIdGen.skip(startIndex)     
-    }
-    this.feeds[topic] = indexedSaltedSocIdGen    
-}
-
-BeeClient.prototype.updateFeedWithTopic = async function (topic, data, wallet) {
-    const indexedSaltedSocIdGen = this.feeds[topic]
-    const nextId =  indexedSaltedSocIdGen.next()
-    const splitter = new swarm.fileSplitter(undefined, true)
-    const chunk =  splitter.split(data)
-    const soc = new swarm.soc(nextId, chunk, wallet)
-    soc.sign()
-    const socAddress = soc.getAddress()
-    const socData = soc.serializeData()
-    const res = await this.uploadChunkData(socData, toHex(socAddress))
-    return res
-}
-
-BeeClient.prototype.getFeedWithTopic = async function (topic, wallet) {
-    const indexedSaltedSocIdGen = this.feeds[topic]
-    const thisId = indexedSaltedSocIdGen.current()
-    const soc = new swarm.soc(thisId, undefined, wallet)
-    const socAddress = soc.getAddress()
-    const rawRes = await this.downloadChunkData(toHex(socAddress))
-    const ch = { data: new Uint8Array(rawRes) }
-    const res = new swarm.socFromSocChunk(ch)
-    return res
-}
-
 BeeClient.prototype.addFeed = async function (wallet, startIndex = 0) {
     const indexedSocIdGen = new dfeeds.indexed(wallet.address)
-    if(startIndex >= 0) {
-        indexedSocIdGen.skip(startIndex)     
+    if (startIndex >= 0) {
+        indexedSocIdGen.skip(startIndex)
     }
-    this.feeds[wallet.address] = indexedSocIdGen    
+    this.feeds[wallet.address] = indexedSocIdGen
 }
 
 BeeClient.prototype.updateFeed = async function (data, wallet) {
     const indexedSocIdGen = this.feeds[wallet.address]
-    const nextId =  indexedSocIdGen.next()
+    const nextId = indexedSocIdGen.next()
     const splitter = new swarm.fileSplitter(undefined, true)
-    const chunk =  splitter.split(data)
+    const chunk = splitter.split(data)
     const soc = new swarm.soc(nextId, chunk, wallet)
     soc.sign()
     const socAddress = soc.getAddress()
@@ -92,6 +60,38 @@ BeeClient.prototype.updateFeed = async function (data, wallet) {
 BeeClient.prototype.getFeed = async function (wallet) {
     const indexedSocIdGen = this.feeds[wallet.address]
     const thisId = indexedSocIdGen.current()
+    const soc = new swarm.soc(thisId, undefined, wallet)
+    const socAddress = soc.getAddress()
+    const rawRes = await this.downloadChunkData(toHex(socAddress))
+    const ch = { data: new Uint8Array(rawRes) }
+    const res = new swarm.socFromSocChunk(ch)
+    return res
+}
+
+BeeClient.prototype.addFeedWithTopic = async function (topic, wallet, startIndex = 0) {
+    const indexedSaltedSocIdGen = new dfeeds.saltIndexed(wallet.address, topic)
+    if (startIndex >= 0) {
+        indexedSaltedSocIdGen.skip(startIndex)
+    }
+    this.feeds[topic] = indexedSaltedSocIdGen
+}
+
+BeeClient.prototype.updateFeedWithTopic = async function (topic, data, wallet) {
+    const indexedSaltedSocIdGen = this.feeds[topic]
+    const nextId = indexedSaltedSocIdGen.next()
+    const splitter = new swarm.fileSplitter(undefined, true)
+    const chunk = splitter.split(data)
+    const soc = new swarm.soc(nextId, chunk, wallet)
+    soc.sign()
+    const socAddress = soc.getAddress()
+    const socData = soc.serializeData()
+    const res = await this.uploadChunkData(socData, toHex(socAddress))
+    return res
+}
+
+BeeClient.prototype.getFeedWithTopic = async function (topic, wallet) {
+    const indexedSaltedSocIdGen = this.feeds[topic]
+    const thisId = indexedSaltedSocIdGen.current()
     const soc = new swarm.soc(thisId, undefined, wallet)
     const socAddress = soc.getAddress()
     const rawRes = await this.downloadChunkData(toHex(socAddress))
