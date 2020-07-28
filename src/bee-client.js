@@ -2,7 +2,6 @@ const axios = require('axios')
 const swarm = require('swarm-lowlevel')
 const join = require('./asyncJoiner')
 const dfeeds = require('dfeeds')
-const fetch = require('node-fetch')
 
 function toArrayBuffer(buf) {
     var ab = new ArrayBuffer(buf.length);
@@ -16,14 +15,13 @@ function toArrayBuffer(buf) {
 const toHex = byteArray => Array.from(byteArray, (byte) => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('')
 
 function BeeClient(chunkDataEndpoint, options) {
+    options = options || {}
+    this.feeds = {}
     this.chunkDataEndpoint = chunkDataEndpoint
     this.axios = axios.create({
         baseURL: this.chunkDataEndpoint,
-        timeout: 1000
+        timeout: options.timeout
     });
-    options = options || {}
-    this.feeds = {}
-    this.fetch = fetch
 }
 
 BeeClient.prototype.mergeUint8Arrays = (arrays) => {
@@ -82,20 +80,20 @@ BeeClient.prototype.getFeed = async function (wallet) {
     return res
 }
 
-BeeClient.prototype.addFeedWithTopic = async function (topic, wallet, startIndex = 0) {
+BeeClient.prototype.addFeedWithSalt = async function (salt, wallet, startIndex = 0) {
 
-    const indexedSaltedSocIdGen = new dfeeds.saltIndexed(wallet.address, topic)
+    const indexedSaltedSocIdGen = new dfeeds.saltIndexed(wallet.address, salt)
     if (startIndex >= 0) {
         indexedSaltedSocIdGen.skip(startIndex)
     }
-    this.feeds[topic] = indexedSaltedSocIdGen
+    this.feeds[wallet.address[salt]] = indexedSaltedSocIdGen
 }
 
-BeeClient.prototype.updateFeedWithTopic = async function (topic, data, wallet) {
-    if (!this.feeds[topic]) {
-        this.addFeedWithTopic(topic, wallet)
+BeeClient.prototype.updateFeedWithSalt = async function (salt, data, wallet) {
+    if (!this.feeds[wallet.address[salt]]) {
+        this.addFeedWithSalt(salt, wallet)
     }
-    const indexedSaltedSocIdGen = this.feeds[topic]
+    const indexedSaltedSocIdGen = this.feeds[wallet.address[salt]]
     const nextId = indexedSaltedSocIdGen.next()
     const splitter = new swarm.fileSplitter(undefined, true)
     const chunk = splitter.split(data)
@@ -107,8 +105,8 @@ BeeClient.prototype.updateFeedWithTopic = async function (topic, data, wallet) {
     return res
 }
 
-BeeClient.prototype.getFeedWithTopic = async function (topic, wallet) {
-    const indexedSaltedSocIdGen = this.feeds[topic]
+BeeClient.prototype.getFeedWithSalt = async function (salt, wallet) {
+    const indexedSaltedSocIdGen = this.feeds[wallet.address[salt]]
     const thisId = indexedSaltedSocIdGen.current()
     const soc = new swarm.soc(thisId, undefined, wallet)
     const socAddress = soc.getAddress()
@@ -127,7 +125,6 @@ BeeClient.prototype.uploadChunkData = async function (data, hash) {
         url: hash,
         data: data
     });
-    console.log(data)
     if (!response.status === 200) {
         throw new Error('invalid response: ' + response.statusText)
     }

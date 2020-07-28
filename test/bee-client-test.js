@@ -42,23 +42,21 @@ const userObject = {
 const rawTopic = te.encode("userdata");
 const uint8 = new Uint8Array(32);
 uint8.set(rawTopic, 0)
-const topic = uint8
+const salt = uint8
 
 const data = te.encode(JSON.stringify(userObject))
 
-const bee = new BeeClient("http://localhost:8080/chunks/", null)
+const bee = new BeeClient("http://localhost:8080/chunks", { timeout: 1000 })
 
 describe('BeeClient', () => {
     describe('Testing the Lib <3', () => {
         it('stores item', async () => {
-            const bee = new BeeClient("http://localhost:8080/chunks", null)
             fileData = await readFileAsync('/home/michellerhyder/Documents/fds-bee-client/test/byeworld.txt')
             const hash = await bee.uploadData(fileData).then(hash => {
                 tempHash = toHex(hash)
             })
         })
         it('retrieves item', async () => {
-            const bee = new BeeClient("http://localhost:8080/chunks", null)
             const newHash = tempHash.startsWith('0x') ? tempHash.slice(2) : tempHash
             const res = await bee.downloadData(newHash)
             const result = Buffer.from(res)
@@ -68,19 +66,17 @@ describe('BeeClient', () => {
             const res = await bee.addFeed(wallet)
             const res2 = await bee.updateFeed(data, wallet)
         })
-
         it('reads a feed', async () => {
             const res = await bee.getFeed(wallet)
             const string = td.decode(res.chunk.data)
             assert.equal(string, JSON.stringify(userObject), 'userObject is not found')
         })
-        it('creates a feed w topic', async () => {
-            const res = await bee.addFeedWithTopic(topic, wallet)
-            const res2 = await bee.updateFeedWithTopic(topic, data, wallet)
-
+        it('creates a feed w salt', async () => {
+            const res = await bee.addFeedWithSalt(salt, wallet)
+            const res2 = await bee.updateFeedWithSalt(salt, data, wallet)
         })
-        it('reads a feed w topic', async () => {
-            const res = await bee.getFeedWithTopic(topic, wallet)
+        it('reads a feed w salt', async () => {
+            const res = await bee.getFeedWithSalt(salt, wallet)
             var string = td.decode(res.chunk.data);
             assert.equal(string, JSON.stringify(userObject), 'userObject is not found')
         })
