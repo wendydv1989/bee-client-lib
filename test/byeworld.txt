@@ -1,1 +1,2 @@
 Hi Everyone
+This is a textfile that can be uploaded and dowloaded by Swarm

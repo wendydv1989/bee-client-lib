@@ -1,16 +1,30 @@
-const fetch = require('node-fetch')
+const axios = require('axios')
 const swarm = require('swarm-lowlevel')
 const join = require('./asyncJoiner')
 const dfeeds = require('dfeeds')
+const fetch = require('node-fetch')
 
-function BeeClient(chunkDataEndpoint, options) {
-    this.chunkDataEndpoint = chunkDataEndpoint
-    this.fetch = fetch
-    options = options || {}
-    this.feeds = {}
+function toArrayBuffer(buf) {
+    var ab = new ArrayBuffer(buf.length);
+    var view = new Uint8Array(ab);
+    for (var i = 0; i < buf.length; ++i) {
+        view[i] = buf[i];
+    }
+    return ab;
 }
 
 const toHex = byteArray => Array.from(byteArray, (byte) => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('')
+
+function BeeClient(chunkDataEndpoint, options) {
+    this.chunkDataEndpoint = chunkDataEndpoint
+    this.axios = axios.create({
+        baseURL: this.chunkDataEndpoint,
+        timeout: 1000
+    });
+    options = options || {}
+    this.feeds = {}
+    this.fetch = fetch
+}
 
 BeeClient.prototype.mergeUint8Arrays = (arrays) => {
     const size = arrays.reduce((prev, curr) => prev + curr.length, 0)
@@ -69,6 +83,7 @@ BeeClient.prototype.getFeed = async function (wallet) {
 }
 
 BeeClient.prototype.addFeedWithTopic = async function (topic, wallet, startIndex = 0) {
+
     const indexedSaltedSocIdGen = new dfeeds.saltIndexed(wallet.address, topic)
     if (startIndex >= 0) {
         indexedSaltedSocIdGen.skip(startIndex)
@@ -77,6 +92,9 @@ BeeClient.prototype.addFeedWithTopic = async function (topic, wallet, startIndex
 }
 
 BeeClient.prototype.updateFeedWithTopic = async function (topic, data, wallet) {
+    if (!this.feeds[topic]) {
+        this.addFeedWithTopic(topic, wallet)
+    }
     const indexedSaltedSocIdGen = this.feeds[topic]
     const nextId = indexedSaltedSocIdGen.next()
     const splitter = new swarm.fileSplitter(undefined, true)
@@ -101,29 +119,32 @@ BeeClient.prototype.getFeedWithTopic = async function (topic, wallet) {
 }
 
 BeeClient.prototype.uploadChunkData = async function (data, hash) {
-    const options = {
+    const response = await this.axios({
         headers: {
             'Content-Type': 'binary/octet-stream',
         },
-        method: 'POST',
-        body: data,
-    }
-    const endpoint = `${this.chunkDataEndpoint}/${hash}`
-    const response = await fetch(endpoint, options)
-    if (!response.ok) {
+        method: 'post',
+        url: hash,
+        data: data
+    });
+    console.log(data)
+    if (!response.status === 200) {
         throw new Error('invalid response: ' + response.statusText)
     }
     return hash
 }
 
 BeeClient.prototype.downloadChunkData = async function (hash) {
-    const endpoint = `${this.chunkDataEndpoint}/${hash}`
-    const response = await fetch(endpoint)
-    if (!response.ok) {
-        throw new Error(response.statusText)
-    }
-    const bytes = await response.arrayBuffer()
-    return bytes
+    const response = await this.axios({
+        headers: {
+            'Content-Type': 'binary/octet-stream',
+        },
+        method: 'get',
+        url: hash,
+        responseType: "arraybuffer"
+    })
+    const arrayBuffer = toArrayBuffer(response.data)
+    return arrayBuffer
 }
 
 BeeClient.prototype.downloadChunks = async function (hash) {

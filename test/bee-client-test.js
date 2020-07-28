@@ -15,7 +15,6 @@ const te = new textEncoding.TextEncoder("utf-8")
 
 var path = require('path');
 
-
 const BeeClient = require('../src/bee-client');
 const assert = require('chai').assert
 
@@ -47,7 +46,7 @@ const topic = uint8
 
 const data = te.encode(JSON.stringify(userObject))
 
-const bee = new BeeClient("http://localhost:8080/chunks", null)
+const bee = new BeeClient("http://localhost:8080/chunks/", null)
 
 describe('BeeClient', () => {
     describe('Testing the Lib <3', () => {
@@ -62,13 +61,14 @@ describe('BeeClient', () => {
             const bee = new BeeClient("http://localhost:8080/chunks", null)
             const newHash = tempHash.startsWith('0x') ? tempHash.slice(2) : tempHash
             const res = await bee.downloadData(newHash)
-            const string = td.decode(res)
-            assert.equal(string, fileData, "Stored is not the same as retrieved")
+            const result = Buffer.from(res)
+            assert.equal(result.toString(), fileData.toString(), "Stored is not the same as retrieved")
         })
         it('creates a feed', async () => {
             const res = await bee.addFeed(wallet)
             const res2 = await bee.updateFeed(data, wallet)
         })
+
         it('reads a feed', async () => {
             const res = await bee.getFeed(wallet)
             const string = td.decode(res.chunk.data)
