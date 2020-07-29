@@ -3,17 +3,12 @@ const spies = require('chai-spies')
 const util = require('util')
 const fs = require('fs')
 const swarm = require('swarm-lowlevel')
-const { toHex, hexToByteArray, byteArrayToHex, numbersToByteArray, stringToUint8Array } = require('./conversion')
-const utf8 = require('utf8-encoder')
-const base32Encode = require('base32-encode')
-const base32Decode = require('base32-decode')
-const base32Variant = 'Crockford'
+const { toHex } = require('./conversion')
+
 const textEncoding = require('text-encoding')
 
 const td = new textEncoding.TextDecoder("utf-8")
 const te = new textEncoding.TextEncoder("utf-8")
-
-var path = require('path');
 
 const BeeClient = require('../src/bee-client');
 const assert = require('chai').assert
@@ -21,27 +16,21 @@ const assert = require('chai').assert
 const readFileAsync = util.promisify(fs.readFile)
 
 chai.use(spies)
-const expect = chai.expect
-
-function delay(milliseconds) {
-    return new Promise((resolve) => {
-        setTimeout(() => resolve(), milliseconds)
-    })
-}
 
 const wallet = new swarm.unsafeWallet();
 
 let tempHash = ''
 let fileData = ''
+
 const userObject = {
     avatar: "data",
     username: "Boys Club Berlin",
     status: "accountCreated"
 }
 
-const rawTopic = te.encode("userdata");
+const rawSalt = te.encode("userdata");
 const uint8 = new Uint8Array(32);
-uint8.set(rawTopic, 0)
+uint8.set(rawSalt, 0)
 const salt = uint8
 
 const data = te.encode(JSON.stringify(userObject))
