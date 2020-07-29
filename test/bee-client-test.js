@@ -51,7 +51,7 @@ const bee = new BeeClient("http://localhost:8080/chunks", { timeout: 1000 })
 describe('BeeClient', () => {
     describe('Testing the Lib <3', () => {
         it('stores item', async () => {
-            fileData = await readFileAsync('/home/michellerhyder/Documents/fds-bee-client/test/byeworld.txt')
+            fileData = await readFileAsync('test/helloworld.txt')
             const hash = await bee.uploadData(fileData).then(hash => {
                 tempHash = toHex(hash)
             })

@@ -1,0 +1,6 @@
+While the Internet in general – and the World Wide Web (WWW) in particular –
+dramatically reduced the costs of disseminating information, putting a publisher’s
+power at every user’s fingertips, these costs are still not zero and their allocation
+heavily influences who gets to publish what content and who will consume it.
+In order to appreciate the problems we are trying to solve, a little journey into the
+history of the evolution of the World Wide Web is useful.
