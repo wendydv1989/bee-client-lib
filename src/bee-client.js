@@ -14,10 +14,10 @@ function toArrayBuffer(buf) {
 
 const toHex = byteArray => Array.from(byteArray, (byte) => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('')
 
-function BeeClient(chunkDataEndpoint, options) {
+function BeeClient(host, options) {
     options = options || {}
     this.feeds = {}
-    this.chunkDataEndpoint = chunkDataEndpoint
+    this.chunkDataEndpoint = host + "/chunks"
     this.axios = axios.create({
         baseURL: this.chunkDataEndpoint,
         timeout: options.timeout
