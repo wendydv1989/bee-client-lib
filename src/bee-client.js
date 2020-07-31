@@ -14,10 +14,10 @@ function toArrayBuffer(buf) {
 
 const toHex = byteArray => Array.from(byteArray, (byte) => ('0' + (byte & 0xFF).toString(16)).slice(-2)).join('')
 
-function BeeClient(chunkDataEndpoint, options) {
+function BeeClient(host, options) {
     options = options || {}
     this.feeds = {}
-    this.chunkDataEndpoint = chunkDataEndpoint
+    this.chunkDataEndpoint = host + "/chunks"
     this.axios = axios.create({
         baseURL: this.chunkDataEndpoint,
         timeout: options.timeout
@@ -80,20 +80,24 @@ BeeClient.prototype.getFeed = async function (wallet) {
     return res
 }
 
-BeeClient.prototype.addFeedWithSalt = async function (salt, wallet, startIndex = 0) {
+BeeClient.prototype.addFeedWithSalt = async function (salt, wallet, startIndex = -1) {
 
     const indexedSaltedSocIdGen = new dfeeds.saltIndexed(wallet.address, salt)
-    if (startIndex >= 0) {
-        indexedSaltedSocIdGen.skip(startIndex)
+    if (startIndex > -1) {
+        indexedSaltedSocIdGen.skip(startIndex+1)
     }
-    this.feeds[wallet.address[salt]] = indexedSaltedSocIdGen
+    
+    if (this.feeds[salt] == undefined) {
+	this.feeds[salt] = {}
+    }
+    this.feeds[salt][wallet.address] = indexedSaltedSocIdGen
 }
 
 BeeClient.prototype.updateFeedWithSalt = async function (salt, data, wallet) {
-    if (!this.feeds[wallet.address[salt]]) {
+    if (this.feeds[salt] === undefined || this.feeds[salt][wallet.address] === undefined) {
         this.addFeedWithSalt(salt, wallet)
     }
-    const indexedSaltedSocIdGen = this.feeds[wallet.address[salt]]
+    const indexedSaltedSocIdGen = this.feeds[salt][wallet.address]
     const nextId = indexedSaltedSocIdGen.next()
     const splitter = new swarm.fileSplitter(undefined, true)
     const chunk = splitter.split(data)
@@ -106,7 +110,7 @@ BeeClient.prototype.updateFeedWithSalt = async function (salt, data, wallet) {
 }
 
 BeeClient.prototype.getFeedWithSalt = async function (salt, wallet) {
-    const indexedSaltedSocIdGen = this.feeds[wallet.address[salt]]
+    const indexedSaltedSocIdGen = this.feeds[salt][wallet.address]
     const thisId = indexedSaltedSocIdGen.current()
     const soc = new swarm.soc(thisId, undefined, wallet)
     const socAddress = soc.getAddress()
