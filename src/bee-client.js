@@ -4,6 +4,9 @@ const join = require('./asyncJoiner')
 const dfeeds = require('dfeeds')
 
 function toArrayBuffer(buf) {
+    if (buf instanceof ArrayBuffer) {
+        return buf;
+    }
     var ab = new ArrayBuffer(buf.length);
     var view = new Uint8Array(ab);
     for (var i = 0; i < buf.length; ++i) {
